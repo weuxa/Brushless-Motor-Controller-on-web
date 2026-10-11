@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>EALSpace Motor Kumandası</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto; padding: 22px; max-width: 460px;
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #10151d; color: #f4f7fb;
+  }
+  header { display:flex; align-items:center; gap:12px; margin: 6px 0 22px; }
+  .logo { font-size:30px; }
+  h1 { font-size:22px; margin:0; }
+  .sub { color:#aab7c7; font-size:13px; margin-top:4px; }
+  .status {
+    padding:12px 14px; border:1px solid #354354; border-radius:12px;
+    color:#c7d2df; margin-bottom:14px; overflow-wrap:anywhere;
+  }
+  button { border:0; border-radius:14px; padding:15px 12px; font-size:16px;
+           font-weight:700; cursor:pointer; touch-action:manipulation; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .connect { width:100%; background:#2784ed; color:white; }
+  .directions { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:22px 0; }
+  .dir { background:#283443; color:white; border:2px solid transparent; }
+  .dir.selected { background:#173d69; border-color:#2784ed; }
+  .labelrow { display:flex; justify-content:space-between; align-items:center; }
+  .labelrow span:first-child { color:#c7d2df; }
+  .speed { font-size:42px; font-weight:800; font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; margin:26px 0 8px; accent-color:#2784ed; }
+  .marks { display:flex; justify-content:space-between; color:#91a0b2; font-size:12px; }
+  .stop { width:100%; margin-top:26px; background:#d83243; color:white; min-height:58px; }
+  .note { color:#aab7c7; font-size:12px; line-height:1.5; margin-top:18px; }
+  .panel { border:1px solid #293646; border-radius:18px; padding:17px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🚀</div>
+  <div>
+    <h1>EALSpace Motor</h1>
+    <div class="sub">Deneyap Kart 1A V2 · BLE Kumanda</div>
+  </div>
+</header>
+
+<div id="status" class="status" role="status">Bağlantı bekleniyor</div>
+<button id="connect" class="connect">Bluetooth'a bağlan</button>
+
+<div class="panel">
+  <div class="directions">
+    <button id="forward" class="dir selected">↑ İLERİ</button>
+    <button id="reverse" class="dir">↓ GERİ</button>
+  </div>
+
+  <div class="labelrow">
+    <span>Gaz seviyesi</span>
+    <span id="speedLabel" class="speed">0%</span>
+  </div>
+  <input id="speed" type="range" min="0" max="100" step="1" value="0"
+         aria-label="Motor gaz seviyesi">
+  <div class="marks"><span>0%</span><span>50%</span><span>100%</span></div>
+  <button id="stop" class="stop">■ DURDUR</button>
+</div>
+
+<div class="note">
+  Güvenlik: İlk testi pervane sökülüyken yap. Geri yön, yalnızca çift yönlü ESC
+  doğru şekilde yapılandırılıp test edildiyse çalışır. Bağlantı kaybolursa kart
+  komut zaman aşımında motoru durdurmalıdır.
+</div>
+
+<script>
+(() => {
+  const SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
+  const CHARACTERISTIC_UUID = "12345678-1234-1234-1234-1234567890ac";
+
+  const statusEl = document.getElementById("status");
+  const connectBtn = document.getElementById("connect");
+  const slider = document.getElementById("speed");
+  const speedLabel = document.getElementById("speedLabel");
+  const forwardBtn = document.getElementById("forward");
+  const reverseBtn = document.getElementById("reverse");
+  const stopBtn = document.getElementById("stop");
+
+  let device = null;
+  let characteristic = null;
+  let direction = "F";
+  let speed = 0;
+  let sending = false;
+  let pendingCommand = null;
+  let heartbeatTimer = null;
+
+  function status(message) { statusEl.textContent = message; }
+
+  // Coalesce slider events so rapid movement cannot build an unlimited write queue.
+  function send(command) {
+    if (!characteristic) return;
+    pendingCommand = command;
+    if (!sending) flushCommand();
+  }
+
+  async function flushCommand() {
+    if (sending || !characteristic || pendingCommand === null) return;
+    sending = true;
+    try {
+      while (characteristic && pendingCommand !== null) {
+        const command = pendingCommand;
+        pendingCommand = null;
+        await characteristic.writeValue(new TextEncoder().encode(command));
+      }
+    } catch (error) {
+      status("Komut gönderilemedi: " + error.message);
+    } finally {
+      sending = false;
+      if (characteristic && pendingCommand !== null) flushCommand();
+    }
+  }
+
+  function setSpeed(value) {
+    speed = Number(value);
+    slider.value = String(speed);
+    speedLabel.textContent = speed + "%";
+    if (speed === 0) send("S");
+    else send(direction + "," + speed);
+  }
+
+  function chooseDirection(nextDirection) {
+    // Always command stop before changing direction.
+    setSpeed(0);
+    direction = nextDirection;
+    forwardBtn.classList.toggle("selected", direction === "F");
+    reverseBtn.classList.toggle("selected", direction === "R");
+  }
+
+  forwardBtn.addEventListener("click", () => chooseDirection("F"));
+  reverseBtn.addEventListener("click", () => chooseDirection("R"));
+  slider.addEventListener("input", () => setSpeed(slider.value));
+  stopBtn.addEventListener("click", () => setSpeed(0));
+
+  function disconnected() {
+    characteristic = null;
+    if (heartbeatTimer) clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+    speed = 0;
+    slider.value = "0";
+    speedLabel.textContent = "0%";
+    connectBtn.disabled = false;
+    status("Bağlantı kesildi — kartın zaman aşımı motoru durdurmalı.");
+  }
+
+  connectBtn.addEventListener("click", async () => {
+    if (!("bluetooth" in navigator)) {
+      status("Web Bluetooth desteklenmiyor. Android Chrome üzerinden HTTPS sayfasını aç.");
+      return;
+    }
+    try {
+      connectBtn.disabled = true;
+      status("Bluetooth cihazı seçiliyor…");
+      device = await navigator.bluetooth.requestDevice({
+        filters: [{ name: "EALSpace-Motor" }],
+        optionalServices: [SERVICE_UUID]
+      });
+      device.addEventListener("gattserverdisconnected", disconnected);
+
+      status("Cihaza bağlanılıyor…");
+      const gatt = await device.gatt.connect();
+      const service = await gatt.getPrimaryService(SERVICE_UUID);
+      characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+      setSpeed(0);
+      status("Bağlandı: " + device.name);
+      connectBtn.disabled = false;
+
+      if (heartbeatTimer) clearInterval(heartbeatTimer);
+      heartbeatTimer = setInterval(() => {
+        if (characteristic) send("H");
+      }, 500);
+    } catch (error) {
+      characteristic = null;
+      connectBtn.disabled = false;
+      status("Bağlantı kurulamadı: " + error.message);
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && characteristic) {
+      // Ask the motor to stop if the page is backgrounded.
+      setSpeed(0);
+    }
+  });
+
+  window.addEventListener("pagehide", () => {
+    if (characteristic) {
+      try { characteristic.writeValue(new TextEncoder().encode("S")); } catch (_) {}
+    }
+  });
+})();
+</script>
+</body>
+</html>
