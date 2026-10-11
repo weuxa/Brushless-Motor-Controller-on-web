@@ -159,7 +159,7 @@
       connectBtn.disabled = true;
       status("Bluetooth cihazı seçiliyor…");
       device = await navigator.bluetooth.requestDevice({
-        filters: [{ name: "EALSpace-Motor" }],
+        filters: [{ name: "Brushless-Motor" }],
         optionalServices: [SERVICE_UUID]
       });
       device.addEventListener("gattserverdisconnected", disconnected);
