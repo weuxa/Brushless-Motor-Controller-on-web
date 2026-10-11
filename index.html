@@ -1,202 +1,460 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Yeniçeriler Denizaltı Kumandası</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#071522">
+<title>Yeniçeriler Denizaltısı</title>
+
 <style>
-  :root { color-scheme: dark; }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0 auto; padding: 22px; max-width: 460px;
-    font-family: system-ui, -apple-system, sans-serif;
-    background: #10151d; color: #f4f7fb;
-  }
-  header { display:flex; align-items:center; gap:12px; margin: 6px 0 22px; }
-  .logo { font-size:30px; }
-  h1 { font-size:22px; margin:0; }
-  .sub { color:#aab7c7; font-size:13px; margin-top:4px; }
-  .status {
-    padding:12px 14px; border:1px solid #354354; border-radius:12px;
-    color:#c7d2df; margin-bottom:14px; overflow-wrap:anywhere;
-  }
-  button { border:0; border-radius:14px; padding:15px 12px; font-size:16px;
-           font-weight:700; cursor:pointer; touch-action:manipulation; }
-  button:disabled { opacity:.45; cursor:not-allowed; }
-  .connect { width:100%; background:#2784ed; color:white; }
-  .directions { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:22px 0; }
-  .dir { background:#283443; color:white; border:2px solid transparent; }
-  .dir.selected { background:#173d69; border-color:#2784ed; }
-  .labelrow { display:flex; justify-content:space-between; align-items:center; }
-  .labelrow span:first-child { color:#c7d2df; }
-  .speed { font-size:42px; font-weight:800; font-variant-numeric:tabular-nums; }
-  input[type=range] { width:100%; margin:26px 0 8px; accent-color:#2784ed; }
-  .marks { display:flex; justify-content:space-between; color:#91a0b2; font-size:12px; }
-  .stop { width:100%; margin-top:26px; background:#d83243; color:white; min-height:58px; }
-  .note { color:#aab7c7; font-size:12px; line-height:1.5; margin-top:18px; }
-  .panel { border:1px solid #293646; border-radius:18px; padding:17px; }
+:root {
+  --bg: #071522;
+  --panel: #102638;
+  --border: #24465c;
+  --text: #eaf7ff;
+  --muted: #9bb7c8;
+  --blue: #168ac4;
+  --green: #087f75;
+  --red: #c73745;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 20px 14px 30px;
+  background: radial-gradient(ellipse at top, #173b52, var(--bg) 65%);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+main {
+  width: 100%;
+  max-width: 620px;
+  margin: auto;
+}
+
+header {
+  text-align: center;
+  margin: 12px 0 24px;
+}
+
+header h1 {
+  font-size: clamp(23px, 5vw, 32px);
+  margin: 0 0 8px;
+}
+
+header p { color: var(--muted); margin: 0; }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px;
+  margin: 14px 0;
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+
+.status {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.status.connected { color: #62e6b2; }
+
+button {
+  min-height: 54px;
+  border: 1px solid #32617b;
+  border-radius: 13px;
+  background: #173c54;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: bold;
+  padding: 12px;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button:active { filter: brightness(1.3); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+
+.connect {
+  width: 100%;
+  background: var(--blue);
+  border-color: #40b5ef;
+}
+
+.disconnect { width: 100%; margin-top: 9px; }
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.controls button { min-width: 0; }
+
+.move { background: #125781; }
+.vertical { background: var(--green); border-color: #19b3a4; }
+.stop { background: var(--red); border-color: #f36b76; }
+.empty { visibility: hidden; }
+
+.speed-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+#speedValue {
+  color: #60c9ff;
+  font-size: 24px;
+  font-weight: bold;
+  min-width: 65px;
+  text-align: right;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: #36b9ff;
+  cursor: pointer;
+}
+
+.note {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 13px 0 0;
+}
+
+.warning {
+  border-left: 3px solid #eab65d;
+  padding-left: 12px;
+}
+
+@media (max-width: 360px) {
+  .panel { padding: 13px; }
+  .controls { gap: 7px; }
+  button { padding: 9px 4px; font-size: 14px; }
+}
 </style>
 </head>
+
 <body>
-<header>
-  <div class="logo">🌊</div>
-  <div>
-    <h1>Yeniçeriler Denizaltı Kumandası</h1>
-    <div class="sub">Deneyap Kart 1A V2 · BLE Kumanda</div>
-  </div>
-</header>
+<main>
+  <header>
+    <h1>⚓ YENİÇERİLER</h1>
+    <p>Denizaltısı · Kablosuz kontrol sistemi</p>
+  </header>
 
-<div id="status" class="status" role="status">Bağlantı bekleniyor</div>
-<button id="connect" class="connect">Bluetooth'a bağlan</button>
+  <section class="panel">
+    <h2>Bluetooth bağlantısı</h2>
+    <button id="connect" class="connect">Bluetooth ile bağlan</button>
+    <button id="disconnect" class="disconnect" disabled>Bağlantıyı kes</button>
+    <div id="status" class="status">Bağlantı bekleniyor.</div>
+  </section>
 
-<div class="panel">
-  <div class="directions">
-    <button id="forward" class="dir selected">↑ İLERİ</button>
-    <button id="reverse" class="dir">↓ GERİ</button>
-  </div>
+  <section class="panel">
+    <h2>Motor gücü</h2>
+    <div class="speed-row">
+      <span>Hız ayarı</span>
+      <span id="speedValue">30%</span>
+    </div>
+    <input id="speed" type="range" min="0" max="100" value="30">
+    <p class="note">İlk testlerde düşük hız kullan. Sürgü, hareket ve dönüş komutlarının gücünü ayarlar.</p>
+  </section>
 
-  <div class="labelrow">
-    <span>Gaz seviyesi</span>
-    <span id="speedLabel" class="speed">0%</span>
-  </div>
-  <input id="speed" type="range" min="0" max="100" step="1" value="0"
-         aria-label="Motor gaz seviyesi">
-  <div class="marks"><span>0%</span><span>50%</span><span>100%</span></div>
-  <button id="stop" class="stop">■ DURDUR</button>
-</div>
+  <section class="panel">
+    <h2>Yatay hareket</h2>
+    <div class="controls">
+      <div class="empty"></div>
+      <button class="move hold" data-command="F">▲<br>İLERİ</button>
+      <div class="empty"></div>
 
-<div class="note">
-  Güvenlik: İlk testi pervane sökülüyken yap. Geri yön, yalnızca çift yönlü ESC
-  doğru şekilde yapılandırılıp test edildiyse çalışır. Bağlantı kaybolursa kart
-  komut zaman aşımında motoru durdurmalıdır.
-</div>
+      <button class="move hold" data-command="L">◀<br>SOL</button>
+      <button id="stop" class="stop">■<br>DURDUR</button>
+      <button class="move hold" data-command="R">SAĞ<br>▶</button>
+
+      <div class="empty"></div>
+      <button class="move hold" data-command="B">▼<br>GERİ</button>
+      <div class="empty"></div>
+    </div>
+    <p class="note">Sağ ve sol komutları, yatay iticileri zıt yönde sürerek burnu döndürür.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Dikey hareket</h2>
+    <div class="controls">
+      <div class="empty"></div>
+      <button class="vertical hold" data-command="U">⬆<br>YÜKSEL</button>
+      <div class="empty"></div>
+
+      <div class="empty"></div>
+      <button class="vertical hold" data-command="D">⬇<br>ALÇAL</button>
+      <div class="empty"></div>
+    </div>
+    <p class="note">İki dikey itici birlikte çalışır.</p>
+  </section>
+
+  <section class="panel warning">
+    <strong>Güvenlik uyarısı</strong>
+    <p class="note">
+      Bu sayfa BLE üzerinden komut gönderir; tek başına motorları kontrol edemez.
+      Deneyap kartındaki yazılımın aşağıdaki komut formatını desteklemesi gerekir.
+      Bağlantı kaybında motorları durdurma işlemi kart üzerinde uygulanmalıdır.
+    </p>
+  </section>
+</main>
 
 <script>
-(() => {
-  const SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
-  const CHARACTERISTIC_UUID = "12345678-1234-1234-1234-1234567890ac";
+"use strict";
 
-  const statusEl = document.getElementById("status");
-  const connectBtn = document.getElementById("connect");
-  const slider = document.getElementById("speed");
-  const speedLabel = document.getElementById("speedLabel");
-  const forwardBtn = document.getElementById("forward");
-  const reverseBtn = document.getElementById("reverse");
-  const stopBtn = document.getElementById("stop");
+const DEVICE_NAME = "Brushless-Motor";
 
-  let device = null;
-  let characteristic = null;
-  let direction = "F";
-  let speed = 0;
-  let sending = false;
-  let pendingCommand = null;
-  let heartbeatTimer = null;
+const SERVICE_UUID =
+  "12345678-1234-1234-1234-1234567890ab";
 
-  function status(message) { statusEl.textContent = message; }
+const CHARACTERISTIC_UUID =
+  "12345678-1234-1234-1234-1234567890ac";
 
-  // Coalesce slider events so rapid movement cannot build an unlimited write queue.
-  function send(command) {
-    if (!characteristic) return;
-    pendingCommand = command;
-    if (!sending) flushCommand();
-  }
+const connectButton = document.getElementById("connect");
+const disconnectButton = document.getElementById("disconnect");
+const statusElement = document.getElementById("status");
+const speedSlider = document.getElementById("speed");
+const speedValue = document.getElementById("speedValue");
+const stopButton = document.getElementById("stop");
 
-  async function flushCommand() {
-    if (sending || !characteristic || pendingCommand === null) return;
-    sending = true;
-    try {
-      while (characteristic && pendingCommand !== null) {
-        const command = pendingCommand;
-        pendingCommand = null;
-        await characteristic.writeValue(new TextEncoder().encode(command));
-      }
-    } catch (error) {
-      status("Komut gönderilemedi: " + error.message);
-    } finally {
-      sending = false;
-      if (characteristic && pendingCommand !== null) flushCommand();
-    }
-  }
+let device = null;
+let characteristic = null;
+let connected = false;
+let activeCommand = null;
+let heartbeatTimer = null;
+let writeQueue = Promise.resolve();
 
-  function setSpeed(value) {
-    speed = Number(value);
-    slider.value = String(speed);
-    speedLabel.textContent = speed + "%";
-    if (speed === 0) send("S");
-    else send(direction + "," + speed);
-  }
+function setStatus(message, isConnected = connected) {
+  statusElement.textContent = message;
+  statusElement.classList.toggle("connected", isConnected);
+}
 
-  function chooseDirection(nextDirection) {
-    // Always command stop before changing direction.
-    setSpeed(0);
-    direction = nextDirection;
-    forwardBtn.classList.toggle("selected", direction === "F");
-    reverseBtn.classList.toggle("selected", direction === "R");
-  }
+function updateUI() {
+  connectButton.disabled = connected;
+  disconnectButton.disabled = !connected;
 
-  forwardBtn.addEventListener("click", () => chooseDirection("F"));
-  reverseBtn.addEventListener("click", () => chooseDirection("R"));
-  slider.addEventListener("input", () => setSpeed(slider.value));
-  stopBtn.addEventListener("click", () => setSpeed(0));
-
-  function disconnected() {
-    characteristic = null;
-    if (heartbeatTimer) clearInterval(heartbeatTimer);
-    heartbeatTimer = null;
-    speed = 0;
-    slider.value = "0";
-    speedLabel.textContent = "0%";
-    connectBtn.disabled = false;
-    status("Bağlantı kesildi — kartın zaman aşımı motoru durdurmalı.");
-  }
-
-  connectBtn.addEventListener("click", async () => {
-    if (!("bluetooth" in navigator)) {
-      status("Web Bluetooth desteklenmiyor. Android Chrome üzerinden HTTPS sayfasını aç.");
-      return;
-    }
-    try {
-      connectBtn.disabled = true;
-      status("Bluetooth cihazı seçiliyor…");
-      device = await navigator.bluetooth.requestDevice({
-        filters: [{ name: "Brushless-Motor" }],
-        optionalServices: [SERVICE_UUID]
-      });
-      device.addEventListener("gattserverdisconnected", disconnected);
-
-      status("Cihaza bağlanılıyor…");
-      const gatt = await device.gatt.connect();
-      const service = await gatt.getPrimaryService(SERVICE_UUID);
-      characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
-
-      setSpeed(0);
-      status("Bağlandı: " + device.name);
-      connectBtn.disabled = false;
-
-      if (heartbeatTimer) clearInterval(heartbeatTimer);
-      heartbeatTimer = setInterval(() => {
-        if (characteristic) send("H");
-      }, 500);
-    } catch (error) {
-      characteristic = null;
-      connectBtn.disabled = false;
-      status("Bağlantı kurulamadı: " + error.message);
-    }
+  document.querySelectorAll(".hold").forEach(button => {
+    button.disabled = !connected;
   });
 
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden && characteristic) {
-      // Ask the motor to stop if the page is backgrounded.
-      setSpeed(0);
+  stopButton.disabled = !connected;
+}
+
+function sendRaw(message) {
+  if (!connected || !characteristic) {
+    return Promise.resolve();
+  }
+
+  const bytes = new TextEncoder().encode(message);
+
+  // BLE yazma işlemlerini sıraya alarak paket çakışmalarını önle.
+  writeQueue = writeQueue.then(async () => {
+    if (!connected || !characteristic) return;
+
+    if (characteristic.properties.writeWithoutResponse) {
+      await characteristic.writeValueWithoutResponse(bytes);
+    } else {
+      await characteristic.writeValue(bytes);
     }
+  }).catch(error => {
+    setStatus("Komut gönderilemedi: " + error.message);
   });
 
-  window.addEventListener("pagehide", () => {
-    if (characteristic) {
-      try { characteristic.writeValue(new TextEncoder().encode("S")); } catch (_) {}
+  return writeQueue;
+}
+
+/*
+  Kartın beklediği komut biçimi:
+  M,<sol yatay>,<sağ yatay>,<dikey>
+
+  Motor değerleri -100 ile +100 arasındadır.
+  S = tüm iticileri nötrle
+  H = bağlantı canlılık sinyali
+*/
+function makeCommand(direction) {
+  const power = Number(speedSlider.value);
+
+  let left = 0;
+  let right = 0;
+  let vertical = 0;
+
+  switch (direction) {
+    case "F":
+      left = power;
+      right = power;
+      break;
+
+    case "B":
+      left = -power;
+      right = -power;
+      break;
+
+    case "R":
+      left = power;
+      right = -power;
+      break;
+
+    case "L":
+      left = -power;
+      right = power;
+      break;
+
+    case "U":
+      vertical = power;
+      break;
+
+    case "D":
+      vertical = -power;
+      break;
+  }
+
+  return `M,${left},${right},${vertical}`;
+}
+
+function startCommand(direction) {
+  if (!connected) return;
+
+  activeCommand = direction;
+  sendRaw(makeCommand(direction));
+}
+
+function stopMovement() {
+  activeCommand = null;
+  if (connected) sendRaw("S");
+}
+
+function startHeartbeat() {
+  clearInterval(heartbeatTimer);
+  heartbeatTimer = setInterval(() => {
+    sendRaw("H");
+  }, 300);
+}
+
+function handleDisconnect() {
+  clearInterval(heartbeatTimer);
+  heartbeatTimer = null;
+  connected = false;
+  activeCommand = null;
+  characteristic = null;
+  updateUI();
+  setStatus("Bağlantı kesildi. Kart motorları durdurmalıdır.", false);
+}
+
+async function connectBLE() {
+  if (!navigator.bluetooth) {
+    setStatus("Web Bluetooth desteklenmiyor. HTTPS üzerinden Android Chrome kullan.");
+    return;
+  }
+
+  try {
+    setStatus("Bluetooth cihazı seçiliyor…");
+
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{ name: DEVICE_NAME }],
+      optionalServices: [SERVICE_UUID]
+    });
+
+    device.addEventListener("gattserverdisconnected", handleDisconnect);
+
+    const server = await device.gatt.connect();
+    const service = await server.getPrimaryService(SERVICE_UUID);
+
+    characteristic =
+      await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+    connected = true;
+    updateUI();
+
+    setStatus("Denizaltı kumandasına bağlandı.", true);
+
+    await sendRaw("S");
+    startHeartbeat();
+  } catch (error) {
+    handleDisconnect();
+    setStatus("Bağlantı kurulamadı: " + error.message, false);
+  }
+}
+
+async function disconnectBLE() {
+  if (connected) {
+    await sendRaw("S");
+  }
+
+  clearInterval(heartbeatTimer);
+  heartbeatTimer = null;
+
+  if (device && device.gatt && device.gatt.connected) {
+    device.gatt.disconnect();
+  }
+
+  handleDisconnect();
+  setStatus("Bluetooth bağlantısı kapatıldı.", false);
+}
+
+connectButton.addEventListener("click", connectBLE);
+disconnectButton.addEventListener("click", disconnectBLE);
+
+speedSlider.addEventListener("input", () => {
+  speedValue.textContent = speedSlider.value + "%";
+
+  // Hareket sırasında hız değiştirilirse yeni gücü gönder.
+  if (activeCommand) {
+    sendRaw(makeCommand(activeCommand));
+  }
+});
+
+stopButton.addEventListener("click", stopMovement);
+
+document.querySelectorAll(".hold").forEach(button => {
+  const direction = button.dataset.command;
+
+  button.addEventListener("pointerdown", event => {
+    event.preventDefault();
+    if (button.setPointerCapture) {
+      button.setPointerCapture(event.pointerId);
     }
+    startCommand(direction);
   });
-})();
+
+  const release = event => {
+    if (event) event.preventDefault();
+    if (activeCommand === direction) stopMovement();
+  };
+
+  button.addEventListener("pointerup", release);
+  button.addEventListener("pointercancel", release);
+  button.addEventListener("lostpointercapture", release);
+  button.addEventListener("contextmenu", event => event.preventDefault());
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && connected) stopMovement();
+});
+
+window.addEventListener("pagehide", () => {
+  if (connected) sendRaw("S");
+  clearInterval(heartbeatTimer);
+});
+
+updateUI();
 </script>
 </body>
 </html>
