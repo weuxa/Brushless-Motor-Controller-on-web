@@ -1,1 +1,85 @@
-
+<!doctype html>
+<html lang="tr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#07131f"><title>Yeniçeriler | Tek Motor Kontrolü</title><link rel="stylesheet" href="../assets/style.css"></head>
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="header-title"><span class="brand-mark" style="color:var(--violet)">Y</span><div><h1>Tek Motor Kontrolü</h1><p>Tek BLDC motor · Basit hız kumandası</p></div></div>
+    <div class="header-actions"><span class="pill violet">SYSTEM 02 / SINGLE MOTOR</span><a class="text-link" href="../">← Sistem seçimi</a></div>
+  </header>
+  <main class="motor-console">
+    <div class="stack">
+      <section class="panel status-panel">
+        <div class="status-main"><span id="statusOrb" class="status-orb"></span><div class="status-copy"><strong id="statusTitle">Bağlantı bekleniyor</strong><span id="statusText">Brushless-Motor-1T cihazını bağla.</span></div></div>
+        <div class="connect-actions"><button id="connectButton" class="btn btn-primary">Bluetooth ile bağlan</button><button id="disconnectButton" class="btn btn-ghost" disabled>Kes</button></div>
+      </section>
+      <section class="panel">
+        <div class="control-section"><div><p class="eyebrow">MOTOR OUTPUT</p><h2>Gaz / hız seviyesi</h2><p class="panel-sub">Sürgüyü ayarla, ardından çalıştırma düğmesini basılı tut.</p></div><div id="speedValue" class="speed-number" style="color:var(--violet)">25<span style="font-size:13px">%</span></div></div>
+        <div class="range-wrap"><input id="speedSlider" class="range" style="accent-color:var(--violet)" type="range" min="0" max="100" value="25" aria-label="Motor hızı"><div class="range-labels"><span>STOP · 0%</span><span>50%</span><span>MAX · 100%</span></div></div>
+        <div class="throttle-track"><div id="throttleFill" class="throttle-fill"></div></div>
+        <div style="display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:10px"><span>Seçilen hız</span><span id="speedCaption">25% güç talebi</span></div>
+      </section>
+      <section class="panel">
+        <h2>Motor kontrolü</h2><p class="panel-sub">Çalıştırmak için düğmeye basılı tut. Parmağını/fareyi bıraktığında motor durma sinyaline geçer.</p>
+        <button id="runButton" class="btn btn-violet full motor-run" disabled><span class="glyph">▶</span><span id="runLabel">BASILI TUTARAK ÇALIŞTIR</span></button>
+        <button id="stopButton" class="btn btn-danger full stop-large" style="margin-top:10px" disabled>■ &nbsp; ACİL DURDUR</button>
+        <p id="runHint" class="small-note">Henüz bağlı değil. Önce Bluetooth bağlantısı kur.</p>
+      </section>
+      <div class="safety-note"><span class="safety-icon">⚠</span><div><strong>İlk çalıştırma</strong>Pervaneyi çıkar ve motoru sağlam şekilde sabitle. Bu firmware tek yönlü ESC varsayar: 1000 µs durma, 1000–2000 µs ileri yönde gaz. Ters yön kontrolü bu sade arayüzde yoktur.</div></div>
+    </div>
+    <aside class="stack">
+      <section class="panel motor-art">
+        <div class="motor-ring"></div>
+        <svg viewBox="0 0 240 240" role="img" aria-label="BLDC motor şematik çizimi">
+          <defs><linearGradient id="metal" x1="0" x2="1"><stop stop-color="#41466c"/><stop offset=".5" stop-color="#a5a6c8"/><stop offset="1" stop-color="#4a4a72"/></linearGradient><linearGradient id="body" x1="0" x2="1"><stop stop-color="#39375b"/><stop offset=".5" stop-color="#68619a"/><stop offset="1" stop-color="#2d2b4d"/></linearGradient></defs>
+          <circle cx="120" cy="120" r="91" fill="url(#metal)" stroke="#cbc9f0" stroke-width="2"/><circle cx="120" cy="120" r="76" fill="#24243f" stroke="#8c87c3" stroke-width="3"/>
+          <g fill="url(#body)" stroke="#b4adff" stroke-width="1.5"><rect x="104" y="49" width="32" height="57" rx="8"/><rect x="104" y="134" width="32" height="57" rx="8"/><rect x="49" y="104" width="57" height="32" rx="8"/><rect x="134" y="104" width="57" height="32" rx="8"/><rect x="66" y="66" width="37" height="37" rx="7" transform="rotate(-45 84 84)"/><rect x="137" y="137" width="37" height="37" rx="7" transform="rotate(-45 155 155)"/><rect x="137" y="66" width="37" height="37" rx="7" transform="rotate(45 155 84)"/><rect x="66" y="137" width="37" height="37" rx="7" transform="rotate(45 84 155)"/></g>
+          <circle cx="120" cy="120" r="34" fill="#17182c" stroke="#b6a1ff" stroke-width="3"/><circle cx="120" cy="120" r="13" fill="url(#metal)" stroke="#e5e1ff" stroke-width="2"/><circle cx="120" cy="120" r="4" fill="#37365c"/>
+          <g fill="#ffc76b"><circle cx="120" cy="36" r="4"/><circle cx="204" cy="120" r="4"/><circle cx="120" cy="204" r="4"/><circle cx="36" cy="120" r="4"/></g>
+        </svg>
+      </section>
+      <section class="panel">
+        <h2>Kontrol durumu</h2><p class="panel-sub">Gerçek RPM veya akım sensörü bağlı değil; değerler yalnızca yazılım komutunu gösterir.</p>
+        <div class="telemetry-grid">
+          <div class="telemetry-box"><label>BLE</label><strong id="bleMetric">OFFLINE</strong><small>Bağlantı</small></div>
+          <div class="telemetry-box"><label>MOTOR KOMUTU</label><strong id="motorMetric">STOP</strong><small>Çıkış isteği</small></div>
+          <div class="telemetry-box"><label>HIZ TALEBİ</label><strong id="powerMetric" style="color:var(--violet)">25%</strong><small>Sürgü değeri</small></div>
+          <div class="telemetry-box"><label>GÜVENLİK</label><strong id="safeMetric">STOPPED</strong><small>Komut durumu</small></div>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>3 adımda çalıştır</h2><p class="panel-sub">Bu sayfa yalnızca tek motorlu sistem için tasarlandı.</p>
+        <div class="motor-instructions">
+          <div class="instruction-row"><span class="step-num">01</span><div><strong>Deneyap kartını aç</strong><p>Arduino kodunu tek motorlu karta yükle; cihaz adı <span class="mono">Brushless-Motor-1T</span> olmalı.</p></div></div>
+          <div class="instruction-row"><span class="step-num">02</span><div><strong>Bluetooth ile bağlan</strong><p>Chrome veya Edge üzerinden güvenli HTTPS bağlantısı kullan.</p></div></div>
+          <div class="instruction-row"><span class="step-num">03</span><div><strong>Basılı tutarak çalıştır</strong><p>Butondan elini çekince arayüz durdurma komutu yollar; bağlantı koparsa kartın watchdog'u motoru durdurur.</p></div></div>
+        </div>
+      </section>
+    </aside>
+  </main>
+  <footer class="app-footer"><span>YENİÇERİLER / SINGLE-MOTOR CONSOLE</span><span>BLE CONTROL · MOMENTARY THROTTLE</span><a href="../" class="text-link">Sistem seçimine dön</a></footer>
+</div>
+<script>
+'use strict';
+const DEVICE_NAME='Brushless-Motor-1T';
+const SERVICE_UUID='12345678-1234-1234-1234-1234567890ab';
+const CHARACTERISTIC_UUID='12345678-1234-1234-1234-1234567890ac';
+const el=id=>document.getElementById(id);
+let device=null,characteristic=null,connected=false,heartbeat=null,running=false,writeQueue=Promise.resolve();
+const slider=el('speedSlider');
+function status(title,text,ok=connected){el('statusTitle').textContent=title;el('statusText').textContent=text;el('statusOrb').classList.toggle('connected',ok);el('bleMetric').textContent=ok?'CONNECTED':'OFFLINE';el('safeMetric').textContent=ok?'LINK OK':'STOPPED';}
+function updateUI(){el('connectButton').disabled=connected;el('disconnectButton').disabled=!connected;el('runButton').disabled=!connected;el('stopButton').disabled=!connected;}
+function sendRaw(message){if(!connected||!characteristic)return Promise.resolve();const data=new TextEncoder().encode(message);writeQueue=writeQueue.then(async()=>{if(!connected||!characteristic)return;if(characteristic.properties.writeWithoutResponse)await characteristic.writeValueWithoutResponse(data);else await characteristic.writeValue(data);}).catch(e=>status('Komut gönderilemedi',e.message,false));return writeQueue;}
+function drawState(){const p=running?Number(slider.value):0;el('throttleFill').style.width=p+'%';el('motorMetric').textContent=running&&p>0?'RUNNING':'STOP';el('powerMetric').textContent=slider.value+'%';el('speedCaption').textContent=slider.value+'% güç talebi';el('safeMetric').textContent=running&&p>0?'ACTIVE':connected?'READY':'STOPPED';el('runButton').classList.toggle('running',running);el('runLabel').textContent=running?'MOTOR ÇALIŞIYOR — BIRAKINCA DURUR':'BASILI TUTARAK ÇALIŞTIR';el('runHint').textContent=!connected?'Önce Bluetooth bağlantısı kur.':running?'Motor komutu aktif. Elini düğmeden çekerek durdur.':'Bağlı ve beklemede. Motor yalnızca düğmeye basılıyken çalışır.';}
+function sendRun(){if(!connected)return;const power=running?Number(slider.value):0;drawState();if(power<=0)sendRaw('S');else sendRaw(`M,${power},0,0`);}
+function stopMotor(){running=false;drawState();if(connected)sendRaw('S');}
+function disconnected(){clearInterval(heartbeat);heartbeat=null;connected=false;characteristic=null;running=false;updateUI();drawState();status('Bağlantı kesildi','Motor durma sinyaline dönmeli.',false);}
+async function connectBLE(){if(!navigator.bluetooth){status('Web Bluetooth desteklenmiyor','HTTPS üzerinden Chrome veya Edge kullan.',false);return;}try{status('Cihaz seçiliyor…','Listeden Brushless-Motor-1T cihazını seç.',false);device=await navigator.bluetooth.requestDevice({filters:[{name:DEVICE_NAME}],optionalServices:[SERVICE_UUID]});device.addEventListener('gattserverdisconnected',disconnected);const server=await device.gatt.connect();const service=await server.getPrimaryService(SERVICE_UUID);characteristic=await service.getCharacteristic(CHARACTERISTIC_UUID);connected=true;running=false;updateUI();status('Motora bağlandı','Çalıştırmak için düğmeyi basılı tut.',true);await sendRaw('S');clearInterval(heartbeat);heartbeat=setInterval(()=>sendRaw('H'),300);drawState();}catch(e){disconnected();status('Bağlantı kurulamadı',e.message,false);}}
+async function disconnectBLE(){stopMotor();clearInterval(heartbeat);heartbeat=null;if(device?.gatt?.connected)device.gatt.disconnect();disconnected();status('Bağlantı kapatıldı','Cihaz seçimi bekleniyor.',false);}
+el('connectButton').addEventListener('click',connectBLE);el('disconnectButton').addEventListener('click',disconnectBLE);el('stopButton').addEventListener('click',stopMotor);
+slider.addEventListener('input',()=>{el('speedValue').innerHTML=slider.value+'<span style="font-size:13px">%</span>';drawState();if(running)sendRun();});
+const runButton=el('runButton');runButton.addEventListener('pointerdown',e=>{e.preventDefault();if(!connected)return;runButton.setPointerCapture?.(e.pointerId);running=true;drawState();sendRun();});const release=e=>{e?.preventDefault();if(running)stopMotor();};runButton.addEventListener('pointerup',release);runButton.addEventListener('pointercancel',release);runButton.addEventListener('lostpointercapture',release);runButton.addEventListener('contextmenu',e=>e.preventDefault());
+window.addEventListener('blur',stopMotor);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMotor();});window.addEventListener('pagehide',()=>{if(connected)sendRaw('S');clearInterval(heartbeat);});
+updateUI();drawState();
+</script>
+</body></html>
