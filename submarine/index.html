@@ -1,1 +1,116 @@
-
+<!doctype html>
+<html lang="tr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#07131f"><title>Yeniçeriler | Denizaltı Kontrolü</title><link rel="stylesheet" href="../assets/style.css"></head>
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="header-title"><span class="brand-mark">Y</span><div><h1>Denizaltı Kontrolü</h1><p>4 iticili su altı aracı · Manuel sürüş</p></div></div>
+    <div class="header-actions"><span class="pill aqua">SYSTEM 01 / 04 THRUSTERS</span><a class="text-link" href="../">← Sistem seçimi</a></div>
+  </header>
+  <main class="dashboard-grid">
+    <div class="stack">
+      <section class="panel status-panel">
+        <div class="status-main"><span id="statusOrb" class="status-orb"></span><div class="status-copy"><strong id="statusTitle">Bağlantı bekleniyor</strong><span id="statusText">YENICERI-4T cihazını bağla.</span></div></div>
+        <div class="connect-actions"><button id="connectButton" class="btn btn-primary">Bluetooth ile bağlan</button><button id="disconnectButton" class="btn btn-ghost" disabled>Kes</button></div>
+      </section>
+      <section class="panel">
+        <div class="control-section"><div><h2>İtici gücü</h2><p class="panel-sub">Hareket komutlarına uygulanacak üst güç sınırı.</p></div><div id="speedValue" class="speed-number">35<span style="font-size:13px">%</span></div></div>
+        <div class="range-wrap"><input id="speedSlider" class="range" type="range" min="0" max="100" value="35" aria-label="Maksimum itici gücü"><div class="range-labels"><span>0 · DÜŞÜK</span><span>50 · ORTA</span><span>100 · TAM</span></div></div>
+      </section>
+      <section class="panel">
+        <h2>Manuel sürüş</h2><p class="panel-sub">Hareket butonlarına basılı tut. Yatay ve dikey hareketler aynı anda birleştirilebilir.</p>
+        <div class="sub-controls">
+          <div class="control-group">
+            <div class="control-group-header"><strong>Yatay hareket</strong><span class="tiny-label">FWD / TURN</span></div>
+            <div class="dpad" id="horizontalPad">
+              <div class="empty-cell"></div>
+              <button class="btn hold-btn" data-action="forward" aria-label="İleri"><span class="glyph">↑</span><small>İLERİ</small></button>
+              <div class="empty-cell"></div>
+              <button class="btn hold-btn" data-action="left" aria-label="Sola dön"><span class="glyph">↶</span><small>SOLA DÖN</small></button>
+              <button id="stopButton" class="btn stop-center"><span class="glyph">■</span><small>DURDUR</small></button>
+              <button class="btn hold-btn" data-action="right" aria-label="Sağa dön"><span class="glyph">↷</span><small>SAĞA DÖN</small></button>
+              <div class="empty-cell"></div>
+              <button class="btn hold-btn" data-action="backward" aria-label="Geri"><span class="glyph">↓</span><small>GERİ</small></button>
+              <div class="empty-cell"></div>
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="control-group-header"><strong>Dikey hareket</strong><span class="tiny-label">DEPTH</span></div>
+            <div class="vertical-pad">
+              <button class="btn hold-btn" data-action="up" aria-label="Yüksel"><span class="glyph">⤒</span><small>YÜKSEL</small></button>
+              <button class="btn hold-btn" data-action="down" aria-label="Alçal"><span class="glyph">⤓</span><small>ALÇAL</small></button>
+            </div>
+            <p class="keyboard-note">Klavye: <span class="key">W</span> ileri <span class="key">S</span> geri <span class="key">A</span>/<span class="key">D</span> dön <span class="key">↑</span>/<span class="key">↓</span> yüksel/alçal · <span class="key">Space</span> durdur</p>
+          </div>
+        </div>
+      </section>
+      <div class="safety-note"><span class="safety-icon">⚠</span><div><strong>Güvenli kullanım</strong>İlk denemeyi pervaneler sökülüyken veya güvenli test düzeneğinde yap. Butonlar basılı tutuldukları sürece komut verir; bağlantı/heartbeat kesilirse Arduino motorları durdurur.</div></div>
+    </div>
+    <aside class="stack right-stack">
+      <section class="panel hull-card">
+        <div class="hull-caption"><span>VEHICLE / SCHEMATIC</span><span id="modeLabel">STANDBY</span></div>
+        <div class="sonar"></div>
+        <svg class="sub-illustration" viewBox="0 0 300 130" role="img" aria-label="Denizaltı şematik çizimi">
+          <defs><linearGradient id="hull" x1="0" x2="1"><stop stop-color="#23566c"/><stop offset=".5" stop-color="#64c5c9"/><stop offset="1" stop-color="#1e526a"/></linearGradient><linearGradient id="glass" x1="0" x2="1"><stop stop-color="#92fff1"/><stop offset="1" stop-color="#198a9e"/></linearGradient></defs>
+          <path d="M35 64 Q46 32 93 34 L213 34 Q250 36 269 64 Q250 91 212 94 L90 94 Q47 91 35 64Z" fill="url(#hull)" stroke="#91f6ed" stroke-width="2"/>
+          <path d="M110 34 L123 17 L175 17 L190 34Z" fill="#24677a" stroke="#72ded9" stroke-width="2"/>
+          <path d="M138 18 L138 6 L162 6 L162 18" fill="#164052" stroke="#72ded9" stroke-width="2"/>
+          <circle cx="82" cy="64" r="13" fill="url(#glass)" stroke="#b6fff5" stroke-width="2"/><circle cx="119" cy="64" r="13" fill="url(#glass)" stroke="#b6fff5" stroke-width="2"/><circle cx="156" cy="64" r="13" fill="url(#glass)" stroke="#b6fff5" stroke-width="2"/>
+          <path d="M269 51 L286 42 L286 86 L269 77Z" fill="#2c7180" stroke="#8af0e5" stroke-width="2"/><path d="M55 44 L40 29 L48 53 M55 85 L40 100 L48 76" fill="#24566a" stroke="#8af0e5" stroke-width="2"/>
+          <path d="M197 47 L224 47 M197 81 L224 81" stroke="#c0fff4" stroke-width="2" opacity=".75"/>
+        </svg>
+      </section>
+      <section class="panel">
+        <h2>İtici çıkışları</h2><p class="panel-sub">Arayüzün gönderdiği komut değerleri · sensör telemetrisi değildir.</p>
+        <div class="output-list">
+          <div class="output-row"><span class="output-name">Arka sol</span><div class="output-track"><div id="barLeft" class="output-bar"></div></div><span id="valLeft" class="output-value">0%</span></div>
+          <div class="output-row"><span class="output-name">Arka sağ</span><div class="output-track"><div id="barRight" class="output-bar"></div></div><span id="valRight" class="output-value">0%</span></div>
+          <div class="output-row"><span class="output-name">Ön çift</span><div class="output-track"><div id="barVertical" class="output-bar"></div></div><span id="valVertical" class="output-value">0%</span></div>
+          <div class="output-midline"><span>TERS ◀</span><span>NÖTR</span><span>İLERİ ▶</span></div>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Sistem durumu</h2><p class="panel-sub">Bu projede sensör verileri Arduino'dan gönderilmiyor; aşağıdaki alanlar kontrol bağlantısı durumunu gösterir.</p>
+        <div class="telemetry-grid">
+          <div class="telemetry-box"><label>BLE</label><strong id="bleMetric">OFFLINE</strong><small>Bluetooth bağlantısı</small></div>
+          <div class="telemetry-box"><label>KOMUT</label><strong id="commandMetric">STOP</strong><small>Son kontrol modu</small></div>
+          <div class="telemetry-box"><label>GÜÇ SINIRI</label><strong id="powerMetric" class="aqua-text">35%</strong><small>Arayüzde seçilen değer</small></div>
+          <div class="telemetry-box"><label>GÜVENLİK</label><strong id="safeMetric">ARMED OFF</strong><small>Komut bağlantısı durumu</small></div>
+        </div>
+      </section>
+    </aside>
+  </main>
+  <footer class="app-footer"><span>YENİÇERİLER / 4-THRUSTER CONSOLE</span><span>BLE CONTROL · MANUAL MODE</span><a href="../" class="text-link">Sistem seçimine dön</a></footer>
+</div>
+<script>
+'use strict';
+const DEVICE_NAME = 'Yeniceri-4T';
+const SERVICE_UUID = '12345678-1234-1234-1234-1234567890ab';
+const CHARACTERISTIC_UUID = '12345678-1234-1234-1234-1234567890ac';
+const el = id => document.getElementById(id);
+let device = null, characteristic = null, connected = false, heartbeat = null;
+let writeQueue = Promise.resolve();
+const held = new Set();
+const opposites = {forward:'backward',backward:'forward',left:'right',right:'left',up:'down',down:'up'};
+const speedSlider = el('speedSlider');
+const movementKeys = {w:'forward',s:'backward',a:'left',d:'right',ArrowUp:'up',ArrowDown:'down'};
+function status(title, text, ok=connected){el('statusTitle').textContent=title;el('statusText').textContent=text;el('statusOrb').classList.toggle('connected',ok);el('bleMetric').textContent=ok?'CONNECTED':'OFFLINE';el('safeMetric').textContent=ok?'LINK OK':'STOPPED';}
+function updateControls(){el('connectButton').disabled=connected;el('disconnectButton').disabled=!connected;document.querySelectorAll('.hold-btn').forEach(b=>b.disabled=!connected);el('stopButton').disabled=!connected;}
+function sendRaw(message){if(!connected||!characteristic)return Promise.resolve();const data=new TextEncoder().encode(message);writeQueue=writeQueue.then(async()=>{if(!connected||!characteristic)return;if(characteristic.properties.writeWithoutResponse)await characteristic.writeValueWithoutResponse(data);else await characteristic.writeValue(data);}).catch(e=>status('Komut gönderilemedi',e.message,false));return writeQueue;}
+function getMix(){const speed=Number(speedSlider.value);const forward=(held.has('forward')?1:0)-(held.has('backward')?1:0);const turn=(held.has('right')?1:0)-(held.has('left')?1:0);let left=forward+turn;let right=forward-turn;const norm=Math.max(1,Math.abs(left),Math.abs(right));left=Math.round(left/norm*speed);right=Math.round(right/norm*speed);const vertical=((held.has('up')?1:0)-(held.has('down')?1:0))*speed;return {left,right,vertical};}
+function renderMix(v){[['Left',v.left],['Right',v.right],['Vertical',v.vertical]].forEach(([key,value])=>{el('val'+key).textContent=(value>0?'+':'')+value+'%';el('bar'+key).style.width=Math.abs(value)+'%';el('bar'+key).style.opacity=value===0?'.35':'1';});const active=held.size>0;el('commandMetric').textContent=!active?'STOP':(held.has('up')||held.has('down'))&& (held.has('forward')||held.has('backward')||held.has('left')||held.has('right'))?'COMBINED':held.has('up')?'ASCEND':held.has('down')?'DESCEND':held.has('left')?'TURN LEFT':held.has('right')?'TURN RIGHT':held.has('backward')?'REVERSE':'FORWARD';el('modeLabel').textContent=active?'ACTIVE':'STANDBY';el('powerMetric').textContent=speedSlider.value+'%';document.querySelectorAll('[data-action]').forEach(b=>b.classList.toggle('axis-active',held.has(b.dataset.action)));}
+function sendCurrent(){const v=getMix();renderMix(v);if(!connected)return;if(!held.size){sendRaw('S');return;}sendRaw(`M,${v.left},${v.right},${v.vertical}`);}
+function press(action){if(!connected)return;const other=opposites[action];if(other)held.delete(other);held.add(action);sendCurrent();}
+function release(action){if(!held.has(action))return;held.delete(action);sendCurrent();}
+function stopAll(){held.clear();renderMix({left:0,right:0,vertical:0});document.querySelectorAll('[data-action]').forEach(b=>b.classList.remove('axis-active'));if(connected)sendRaw('S');}
+function disconnected(){clearInterval(heartbeat);heartbeat=null;connected=false;characteristic=null;held.clear();updateControls();renderMix({left:0,right:0,vertical:0});status('Bağlantı kesildi','Kart motorları durdurma komutuna dönmeli.',false);}
+async function connectBLE(){if(!navigator.bluetooth){status('Web Bluetooth desteklenmiyor','HTTPS üzerinden Chrome veya Edge kullan.',false);return;}try{status('Cihaz seçiliyor…','Listeden Yeniceri-4T cihazını seç.',false);device=await navigator.bluetooth.requestDevice({filters:[{name:DEVICE_NAME}],optionalServices:[SERVICE_UUID]});device.addEventListener('gattserverdisconnected',disconnected);const server=await device.gatt.connect();const service=await server.getPrimaryService(SERVICE_UUID);characteristic=await service.getCharacteristic(CHARACTERISTIC_UUID);connected=true;updateControls();status('Denizaltıya bağlandı','Komut bağlantısı aktif.',true);await sendRaw('S');clearInterval(heartbeat);heartbeat=setInterval(()=>sendRaw('H'),300);}catch(e){disconnected();status('Bağlantı kurulamadı',e.message,false);}}
+async function disconnectBLE(){stopAll();clearInterval(heartbeat);heartbeat=null;if(device?.gatt?.connected)device.gatt.disconnect();disconnected();status('Bağlantı kapatıldı','Cihaz seçimi bekleniyor.',false);}
+el('connectButton').addEventListener('click',connectBLE);el('disconnectButton').addEventListener('click',disconnectBLE);el('stopButton').addEventListener('click',stopAll);
+speedSlider.addEventListener('input',()=>{el('speedValue').innerHTML=speedSlider.value+'<span style="font-size:13px">%</span>';renderMix(getMix());if(held.size)sendCurrent();});
+document.querySelectorAll('[data-action]').forEach(button=>{const action=button.dataset.action;button.addEventListener('pointerdown',event=>{event.preventDefault();button.setPointerCapture?.(event.pointerId);press(action);});const up=event=>{event?.preventDefault();release(action);};button.addEventListener('pointerup',up);button.addEventListener('pointercancel',up);button.addEventListener('lostpointercapture',up);button.addEventListener('contextmenu',e=>e.preventDefault());});
+document.addEventListener('keydown',e=>{if(e.repeat||e.target.matches('input,textarea,select'))return;if(e.code==='Space'){e.preventDefault();stopAll();return;}const action=movementKeys[e.key]||movementKeys[e.key.toLowerCase()];if(action){e.preventDefault();press(action);}});
+document.addEventListener('keyup',e=>{const action=movementKeys[e.key]||movementKeys[e.key.toLowerCase()];if(action)release(action);});window.addEventListener('blur',stopAll);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAll();});window.addEventListener('pagehide',()=>{if(connected)sendRaw('S');clearInterval(heartbeat);});
+updateControls();renderMix({left:0,right:0,vertical:0});
+</script>
+</body></html>
